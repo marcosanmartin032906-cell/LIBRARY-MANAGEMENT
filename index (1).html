@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campus Library Management System</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{--bg:#f5f7fb;--panel:#fff;--ink:#101828;--muted:#667085;--line:#e4e7ec;--side:#0f1b33;--side-ink:#a9b6d3;--brand:#2f5bea;--brand-ink:#fff;--soft:#eef2ff;--bad:#c0362c;--badbg:#fdecea;--ok:#157a3f;--okbg:#e6f6ec;--warn:#9a6700;--warnbg:#fff4d6}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1220;--panel:#141d30;--ink:#eef2fa;--muted:#95a3bf;--line:#26324d;--side:#08101f;--brand:#7d9bff;--brand-ink:#0b1220;--soft:#1b2744;--bad:#ff8f86;--badbg:#3a1f22;--ok:#6fd392;--okbg:#17301f;--warn:#f5c451;--warnbg:#3a2f12}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+aside{background:var(--side);color:var(--side-ink);padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;gap:10px;align-items:center;color:#fff;padding:0 8px 22px}
+.brand .logo{width:36px;height:36px;border-radius:9px;background:var(--brand);display:grid;place-items:center;color:var(--brand-ink)}
+.brand b{display:block;font-size:.98rem;line-height:1.2}.brand small{opacity:.65;font-size:.74rem}
+aside nav button{display:flex;align-items:center;gap:12px;width:100%;background:none;border:0;color:inherit;font:inherit;padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:2px}
+aside nav button:hover{background:rgba(255,255,255,.06)}
+aside nav button[aria-selected=true]{background:rgba(255,255,255,.12);color:#fff;font-weight:600}
+.foot{margin-top:auto;padding:10px;font-size:.76rem;opacity:.6}
+main{padding:28px 32px 70px;min-width:0;max-width:1180px;width:100%}
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.head h2{margin:0;font-size:1.5rem;font-weight:650;letter-spacing:-.01em}.head p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+.view{display:none}.view.on{display:block}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px}
+.stat,.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.stat span{color:var(--muted);font-size:.82rem}.stat b{display:block;font-size:1.7rem;font-weight:650;margin-top:2px}
+.stat.bad b{color:var(--bad)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:16px}
+.card h3{margin:0 0 12px;font-size:1rem;font-weight:650}
+.row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.9rem}.row:last-child{border:0}
+.row .t{flex:1;min-width:0}.row .t div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row small{color:var(--muted)}
+.meter{width:90px;height:8px;background:var(--soft);border-radius:4px;overflow:hidden}.meter i{display:block;height:100%;background:var(--brand)}
+.btn{display:inline-flex;align-items:center;gap:8px;font:inherit;font-weight:600;padding:9px 16px;border:0;border-radius:8px;background:var(--brand);color:var(--brand-ink);cursor:pointer}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}.btn.danger{background:var(--bad);color:#fff}
+.sm{font:inherit;font-size:.82rem;padding:4px 11px;border:1px solid var(--line);border-radius:7px;background:none;color:var(--ink);cursor:pointer}
+.sm.del{color:var(--bad)}.sm:hover{background:var(--soft)}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+input,select{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);min-width:0}
+.tools input{flex:1 1 240px}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3px}
+.seg button{font:inherit;font-size:.85rem;border:0;background:none;color:var(--muted);padding:5px 12px;border-radius:6px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--soft);color:var(--brand);font-weight:600}
+.wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;min-width:600px}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line)}
+th{font-size:.76rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:var(--bg)}
+tr:last-child td{border:0}tbody tr:hover td{background:var(--bg)}
+td small{display:block;color:var(--muted)}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:600;white-space:nowrap}
+.pill.ok{background:var(--okbg);color:var(--ok)}.pill.bad{background:var(--badbg);color:var(--bad)}.pill.warn{background:var(--warnbg);color:var(--warn)}.pill.mut{background:var(--soft);color:var(--brand)}
+.who{display:flex;align-items:center;gap:10px}.av{width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--brand);display:grid;place-items:center;font-size:.78rem;font-weight:700;flex:none}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+dialog{border:0;border-radius:14px;padding:0;width:min(480px,92vw);background:var(--panel);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(8,14,28,.6)}
+dialog form{padding:24px}dialog h3{margin:0 0 4px;font-size:1.2rem}dialog p{margin:0 0 16px;color:var(--muted);font-size:.9rem}
+label{display:block;font-size:.82rem;font-weight:600;margin:12px 0 4px}label+input,label+select{width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.acts{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.set{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}.set:last-child{border:0}.set p{margin:0;color:var(--muted);font-size:.88rem}
+#toast{position:fixed;right:20px;bottom:20px;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:10px;font-weight:500;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none;z-index:99;max-width:80vw}
+#toast.on{opacity:1;transform:none}
+@media(max-width:800px){body{display:block}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;padding:12px}.brand{width:100%;padding-bottom:8px}aside nav{display:flex;flex-wrap:wrap}aside nav button{width:auto}.foot{display:none}main{padding:20px 14px 60px}}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+
+:root{--bg:#f6f4ff;--soft:#efecff;--brand:#5b4cdb;--brand2:#8b5cf6;--brand-ink:#fff;--side:#1b1446;--side2:#34237f;--side-ink:#cfc8f5;--line:#e6e1fa}
+@media (prefers-color-scheme:dark){:root{--bg:#0f0c24;--panel:#191436;--soft:#251f55;--line:#2e2760;--brand:#9b8cff;--brand2:#c084fc;--brand-ink:#0f0c24;--side:#0b0820;--side2:#1d1458}}
+aside{background:linear-gradient(180deg,var(--side),var(--side2))}
+.brand .logo{background:linear-gradient(135deg,#ff7a59,#ec4899);color:#fff}
+aside nav button[aria-selected=true]{background:rgba(255,255,255,.14);box-shadow:inset 3px 0 0 #ff7a59}
+.btn{background:linear-gradient(135deg,var(--brand),var(--brand2))}
+.btn.light{background:#fff;color:#4338ca}.btn.glass{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.45)}
+.av{background:linear-gradient(135deg,var(--brand),#ec4899);color:#fff}
+.hero{position:relative;overflow:hidden;border-radius:18px;padding:30px 32px 0;margin-bottom:22px;color:#fff;background:linear-gradient(120deg,#4338ca,#7c3aed 55%,#ec4899);display:flex;justify-content:space-between;align-items:flex-end;gap:20px;animation:rise .6s ease both}
+.hc{padding-bottom:30px}.hero h2{font:700 2rem/1.15 Georgia,"Times New Roman",serif;margin:4px 0 8px}.hero small{opacity:.85}
+.hero p{margin:0 0 18px;opacity:.93;max-width:46ch}.hbtns{display:flex;gap:10px;flex-wrap:wrap}
+.shelf{display:flex;align-items:flex-end;gap:6px;margin-right:8px}.shelf span{width:24px;border-radius:5px 5px 0 0;background:#fff}
+.shelf span:nth-child(1){height:90px;background:#fde68a}.shelf span:nth-child(2){height:132px}.shelf span:nth-child(3){height:106px;background:#a7f3d0}
+.shelf span:nth-child(4){height:152px;background:#fecdd3}.shelf span:nth-child(5){height:116px;background:#bae6fd}
+.shelf span:nth-child(6){height:136px;transform:rotate(9deg);transform-origin:bottom left;margin-left:6px}.shelf span:nth-child(7){height:96px;background:#fde68a;margin-left:10px}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+.stat{position:relative}.ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;margin-bottom:10px;background:color-mix(in srgb,currentColor 14%,transparent)}
+.c1{color:#5b4cdb}.c2{color:#0f9d8a}.c3{color:#d9468f}.c4{color:#d97706}.c5{color:#d93f33}.c6{color:#2f7bd9}
+.stat .ic+span{display:block}.stat.bad b{color:var(--bad)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
+.bk{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;transition:transform .15s,box-shadow .15s}
+.bk:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(70,45,160,.2)}
+.cover{aspect-ratio:3/4;border-radius:4px 10px 10px 4px;padding:16px 14px 14px 22px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;box-shadow:inset 8px 0 0 rgba(0,0,0,.16);text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.cover small{font-size:.7rem;font-weight:700;opacity:.92}.cover span{font-size:.78rem;opacity:.92}
+.cover b{font:700 1.08rem/1.25 Georgia,"Times New Roman",serif;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.bi{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+@media(max-width:800px){.shelf{display:none}.hero{padding:24px 20px}.hc{padding-bottom:24px}}
+@media(prefers-reduced-motion:reduce){.hero{animation:none}.bk{transition:none}}
+</style>
+</head>
+<body>
+<aside>
+  <div class="brand"><div class="logo"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM20 17v4H6.5"/></svg></div><div><b>Campus Library</b><small>Management System</small></div></div>
+  <nav id="nav"></nav>
+  <div class="foot">Cloud database powered by Supabase</div>
+</aside>
+<main id="app"><p style="color:var(--muted)">Loading database...</p></main>
+<div id="toast" role="status"></div>
+
+<template id="tpl">
+<section class="view on" id="dash">
+  <div class="hero"><div class="hc"><small id="today"></small><h2 id="greet"></h2><p id="heroSub"></p><div class="hbtns"><button class="btn light" data-open="dLoan">Issue a book</button><button class="btn glass" data-open="dBook">Add a book</button></div></div><div class="shelf" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+  <div class="stats" id="stats"></div>
+  <div class="cols">
+    <div class="card"><h3>Most borrowed</h3><div id="popular"></div></div>
+    <div class="card"><h3>Overdue books</h3><div id="overdue"></div></div>
+  </div>
+  <div class="card"><h3>Recent activity</h3><div id="recent"></div></div>
+</section>
+
+<section class="view" id="books">
+  <div class="head"><div><h2>Books</h2><p>Catalog and availability.</p></div><button class="btn" data-open="dBook">Add book</button></div>
+  <div class="tools"><input id="bSearch" type="search" placeholder="Search by title, author or ISBN" aria-label="Search books"><select id="bFilter" aria-label="Category"></select></div>
+  <div class="grid" id="bookGrid"></div>
+</section>
+
+<section class="view" id="students">
+  <div class="head"><div><h2>Students</h2><p>Registered borrowers.</p></div><button class="btn" data-open="dStu">Add student</button></div>
+  <div class="tools"><input id="sSearch" type="search" placeholder="Search by name or student number" aria-label="Search students"></div>
+  <div class="wrap"><table><thead><tr><th>Student</th><th>Course</th><th>Year</th><th>Borrowed</th><th></th></tr></thead><tbody id="stuRows"></tbody></table></div>
+</section>
+
+<section class="view" id="loans">
+  <div class="head"><div><h2>Loans</h2><p>Issue and return books.</p></div><button class="btn" data-open="dLoan">Issue book</button></div>
+  <div class="tools"><div class="seg" id="seg">
+    <button data-lf="all" aria-pressed="true">All</button><button data-lf="active" aria-pressed="false">Borrowed</button><button data-lf="late" aria-pressed="false">Overdue</button><button data-lf="done" aria-pressed="false">Returned</button></div></div>
+  <div class="wrap"><table><thead><tr><th>Book</th><th>Student</th><th>Issued</th><th>Due</th><th>Status</th><th>Fine</th><th></th></tr></thead><tbody id="loanRows"></tbody></table></div>
+</section>
+
+<section class="view" id="settings">
+  <div class="head"><div><h2>Settings</h2><p>Library rules and database tools.</p></div></div>
+  <div class="card">
+    <div class="set"><div><b>Borrowing limit</b><p>Each student can borrow up to 3 books at a time.</p></div></div>
+    <div class="set"><div><b>Late fee</b><p>₱5 per day after the due date, charged when the book is returned.</p></div></div>
+    <div class="set"><div><b>Export data</b><p>Download a copy of all records as a JSON file.</p></div><button class="btn ghost" id="exportDb">Export</button></div>
+    <div class="set"><div><b>Database</b><p>Records are stored online in Supabase and shared by everyone who opens this site.</p></div></div>
+  </div>
+  </div>
+</section>
+
+<dialog id="dBook"><form id="bookForm"><h3>Add book</h3><p>Add a new title to the catalog.</p>
+  <label for="bTitle">Title</label><input id="bTitle" required>
+  <label for="bAuthor">Author</label><input id="bAuthor" required>
+  <div class="two"><div><label for="bIsbn">ISBN</label><input id="bIsbn"></div><div><label for="bCopies">Copies</label><input id="bCopies" type="number" min="1" value="1" required></div></div>
+  <label for="bCat">Category</label><input id="bCat" list="cats" required><datalist id="cats"></datalist>
+  <div class="acts"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn">Save book</button></div></form></dialog>
+
+<dialog id="dStu"><form id="stuForm"><h3>Add student</h3><p>Register a new borrower.</p>
+  <label for="sNo">Student number</label><input id="sNo" placeholder="2026-0005" required>
+  <label for="sName">Full name</label><input id="sName" required>
+  <div class="two"><div><label for="sCourse">Course</label><input id="sCourse" placeholder="BSIT" required></div><div><label for="sYear">Year level</label><select id="sYear"><option>1</option><option>2</option><option>3</option><option>4</option></select></div></div>
+  <div class="acts"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn">Save student</button></div></form></dialog>
+
+<dialog id="dLoan"><form id="loanForm"><h3>Issue book</h3><p>Lend an available copy to a student.</p>
+  <label for="lBook">Book</label><select id="lBook" required></select>
+  <label for="lStu">Student</label><select id="lStu" required></select>
+  <label for="lDays">Loan period</label><select id="lDays"><option value="7">7 days</option><option value="14">14 days</option><option value="21">21 days</option></select>
+  <div class="acts"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn">Issue book</button></div></form></dialog>
+
+<dialog id="dConfirm"><form method="dialog"><h3>Are you sure?</h3><p id="cText"></p>
+  <div class="acts"><button class="btn ghost" value="no">Cancel</button><button class="btn danger" value="yes" id="cOk">Confirm</button></div></form></dialog>
+</template>
+
+<script>
+// ====== PASTE YOUR SUPABASE DETAILS HERE (Project Settings -> API) ======
+const SUPABASE_URL = "https://wscwepqhozbqgoznxfjl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_uJl7inlYtZT079Nz932Mmw_dwpbOYOX";
+// ========================================================================
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = s => new Date(s + "T00:00:00").toLocaleDateString(undefined, {month: "short", day: "numeric", year: "numeric"});
+const ini = n => n.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+const iso = d => new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+const today = () => iso(new Date());
+const addDays = (s, n) => { const d = new Date(s + "T00:00:00"); d.setDate(d.getDate() + n); return iso(d); };
+const diff = (a, b) => Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 864e5);
+const RATE = 5, MAXLOANS = 3;
+const ICONS = {dash:'<path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z"/>',
+  books:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM20 17v4H6.5"/>',
+  students:'<circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1M17 4a4 4 0 0 1 0 8M22 21v-1a5 5 0 0 0-4-4.9"/>',
+  loans:'<path d="M7 7h13l-3-3M17 17H4l3 3"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'};
+const NAV = [["dash","Dashboard"],["books","Books"],["students","Students"],["loans","Loans"],["settings","Settings"]];
+const GR = [["#5b4cdb","#8b5cf6"],["#0f9d8a","#14b8a6"],["#d9468f","#f97316"],["#2f7bd9","#0ea5e9"],["#c2410c","#f43f5e"],["#15803d","#65a30d"],["#7c3aed","#ec4899"],["#0369a1","#6366f1"]];
+const gr = c => { let h = 0; for (const ch of c) h = (h * 31 + ch.charCodeAt(0)) % GR.length; return GR[h]; };
+let sb, D = {books: [], students: [], loans: []}, lf = "all", pending = null, tt;
+
+function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 2800); }
+function ask(text, fn) { $("cText").textContent = text; pending = fn; $("dConfirm").showModal(); }
+
+async function load(first) {
+  const [b, s, l] = await Promise.all([
+    sb.from("books").select("*").order("title"),
+    sb.from("students").select("*").order("name"),
+    sb.from("loans").select("*").order("id", {ascending: false})]);
+  const err = b.error || s.error || l.error;
+  if (err) {
+    if (first) $("app").innerHTML = `<div class="card"><h3>Could not read the database</h3><p>${esc(err.message)}</p><p>Check that you ran setup.sql in the Supabase SQL Editor and that the URL and key are correct.</p></div>`;
+    else toast("Could not refresh the data.");
+    return false;
+  }
+  D = {books: b.data, students: s.data, loans: l.data}; render(); return true;
+}
+async function save(promise, ok, errors) {
+  const {error} = await promise;
+  if (error) { toast((errors && errors[error.code]) || error.message); return false; }
+  await load(); if (ok) toast(ok); return true;
+}
+
+function render() {
+  const t0 = today(), act = D.loans.filter(l => !l.returned);
+  const out = {}, held = {}, count = {};
+  act.forEach(l => { out[l.book_id] = (out[l.book_id] || 0) + 1; held[l.student_id] = (held[l.student_id] || 0) + 1; });
+  D.loans.forEach(l => count[l.book_id] = (count[l.book_id] || 0) + 1);
+  const bm = Object.fromEntries(D.books.map(b => [b.id, b])), sm = Object.fromEntries(D.students.map(x => [x.id, x]));
+  const od = act.filter(l => l.due < t0).map(l => ({...l, d: diff(l.due, t0)})).sort((a, b) => b.d - a.d);
+  const fines = D.loans.reduce((n, l) => n + (l.fine || 0), 0);
+  const copies = D.books.reduce((n, b) => n + b.copies, 0);
+
+  const SI = [ICONS.books, ICONS.students, ICONS.loans, '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', '<path d="M12 3l10 18H2zM12 10v5M12 18h.01"/>', '<circle cx="12" cy="12" r="9"/><path d="M9 9.5c0-1 1.3-2 3-2s3 .8 3 2-1.3 1.7-3 2-3 .8-3 2 1.3 2 3 2 3-1 3-2M12 6v1.5M12 16.5V18"/>'];
+  const SC = ["c1","c2","c3","c4","c5","c6"];
+  $("stats").innerHTML = [[D.books.length,"Titles"],[copies,"Total copies"],[D.students.length,"Students"],[act.length,"Borrowed now"],[od.length,"Overdue","bad"],["₱" + fines,"Fines collected"]]
+    .map(([n, l, c], i) => `<div class="stat ${c || ""}"><i class="ic ${SC[i]}"><svg viewBox="0 0 24 24">${SI[i]}</svg></i><span>${l}</span><b>${n}</b></div>`).join("");
+  const hr = new Date().getHours();
+  $("greet").textContent = (hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening") + ", Librarian";
+  $("today").textContent = new Date().toLocaleDateString(undefined, {weekday: "long", month: "long", day: "numeric"});
+  $("heroSub").textContent = od.length ? `${act.length} books are out and ${od.length} ${od.length === 1 ? "is" : "are"} overdue. Time for a gentle reminder.` : `${act.length} books are out and nothing is overdue. Great work.`;
+
+  const pop = D.books.filter(b => count[b.id]).map(b => ({...b, n: count[b.id]})).sort((a, b) => b.n - a.n || a.title.localeCompare(b.title)).slice(0, 5), mx = Math.max(1, ...pop.map(p => p.n));
+  $("popular").innerHTML = pop.length ? pop.map(p => `<div class="row"><div class="t"><div>${esc(p.title)}</div><small>${esc(p.author)}</small></div><div class="meter"><i style="width:${p.n / mx * 100}%"></i></div><b>${p.n}</b></div>`).join("") : `<div class="empty">No loans yet.</div>`;
+  $("overdue").innerHTML = od.length ? od.map(o => `<div class="row"><div class="t"><div>${esc(bm[o.book_id]?.title)}</div><small>${esc(sm[o.student_id]?.name)}</small></div><span class="pill bad">${o.d} days · ₱${o.d * RATE}</span></div>`).join("") : `<div class="empty">No overdue books.</div>`;
+  const rc = D.loans.slice(0, 5);
+  $("recent").innerHTML = rc.length ? rc.map(r => { const n = sm[r.student_id]?.name || "Student"; return `<div class="row"><div class="who"><div class="av">${ini(n)}</div></div><div class="t"><div>${esc(n)} ${r.returned ? "returned" : "borrowed"} <b>${esc(bm[r.book_id]?.title)}</b></div></div><small>${fmt(r.returned || r.issued)}</small></div>`; }).join("") : `<div class="empty">No activity yet.</div>`;
+
+  const cats = [...new Set(D.books.map(b => b.category))].sort(), cur = $("bFilter").value;
+  $("cats").innerHTML = cats.map(c => `<option value="${esc(c)}">`).join("");
+  $("bFilter").innerHTML = `<option value="">All categories</option>` + cats.map(c => `<option ${c === cur ? "selected" : ""}>${esc(c)}</option>`).join("");
+  const f = $("bFilter").value, q = $("bSearch").value.toLowerCase();
+  const bk = D.books.filter(b => (b.title + b.author + (b.isbn || "")).toLowerCase().includes(q) && (!f || b.category === f));
+  $("bookGrid").innerHTML = bk.length ? bk.map(b => { const g = gr(b.category), av = b.copies - (out[b.id] || 0);
+    return `<article class="bk"><div class="cover" style="background:linear-gradient(145deg,${g[0]},${g[1]})"><small>${esc(b.category)}</small><b>${esc(b.title)}</b><span>${esc(b.author)}</span></div>
+    <div class="bi"><span class="pill ${av > 0 ? "ok" : "bad"}">${av > 0 ? av + " of " + b.copies + " available" : "All out"}</span><button class="sm del" data-delbook="${b.id}" aria-label="Delete ${esc(b.title)}">Delete</button></div></article>`; }).join("")
+    : `<div class="empty" style="grid-column:1/-1">No books match your search.</div>`;
+
+  const sq = $("sSearch").value.toLowerCase();
+  const st = D.students.filter(x => (x.name + x.student_no).toLowerCase().includes(sq));
+  $("stuRows").innerHTML = st.length ? st.map(x => { const n = held[x.id] || 0; return `<tr><td><div class="who"><div class="av">${ini(x.name)}</div><div><b>${esc(x.name)}</b><small>${esc(x.student_no)}</small></div></div></td><td>${esc(x.course)}</td><td>Year ${x.year}</td>
+    <td><span class="pill ${n >= MAXLOANS ? "warn" : "mut"}">${n} of ${MAXLOANS}</span></td><td><button class="sm del" data-delstu="${x.id}">Delete</button></td></tr>`; }).join("") : `<tr><td colspan="5" class="empty">No students found.</td></tr>`;
+
+  const avail = D.books.filter(b => b.copies - (out[b.id] || 0) > 0);
+  $("lBook").innerHTML = avail.length ? avail.map(b => `<option value="${b.id}">${esc(b.title)}</option>`).join("") : `<option value="">No copies available</option>`;
+  $("lStu").innerHTML = D.students.length ? D.students.map(x => `<option value="${x.id}">${esc(x.name)} (${esc(x.student_no)})</option>`).join("") : `<option value="">Add a student first</option>`;
+
+  const ln = [...D.loans].sort((a, b) => (!!a.returned - !!b.returned) || (a.returned ? b.id - a.id : a.due.localeCompare(b.due)))
+    .map(l => ({...l, d: diff(l.due, l.returned || t0)}))
+    .filter(l => lf === "all" || (lf === "active" && !l.returned) || (lf === "late" && !l.returned && l.d > 0) || (lf === "done" && l.returned));
+  $("loanRows").innerHTML = ln.length ? ln.map(l => {
+    const late = !l.returned && l.d > 0, fine = l.returned ? l.fine : late ? l.d * RATE : 0;
+    const status = l.returned ? `<span class="pill ok">Returned</span>` : late ? `<span class="pill bad">Overdue ${l.d}d</span>` : `<span class="pill mut">Borrowed</span>`;
+    return `<tr><td><b>${esc(bm[l.book_id]?.title)}</b></td><td>${esc(sm[l.student_id]?.name)}</td><td>${fmt(l.issued)}</td><td>${fmt(l.due)}</td><td>${status}</td><td>${fine ? "₱" + fine : "-"}</td>
+      <td>${l.returned ? "" : `<button class="sm" data-return="${l.id}">Mark returned</button>`}</td></tr>`;
+  }).join("") : `<tr><td colspan="7" class="empty">No loans in this view.</td></tr>`;
+}
+
+function wire() {
+  $("nav").innerHTML = NAV.map(([id, l], i) => `<button data-view="${id}" aria-selected="${i === 0}"><svg viewBox="0 0 24 24">${ICONS[id]}</svg>${l}</button>`).join("");
+  $("nav").onclick = e => { const b = e.target.closest("button"); if (!b) return;
+    document.querySelectorAll("#nav button").forEach(x => x.setAttribute("aria-selected", x === b));
+    document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === b.dataset.view)); };
+  $("bookForm").onsubmit = async e => { e.preventDefault();
+    if (await save(sb.from("books").insert({isbn: $("bIsbn").value.trim(), title: $("bTitle").value.trim(), author: $("bAuthor").value.trim(), category: $("bCat").value.trim(), copies: +$("bCopies").value || 1}), "Book added.")) { e.target.reset(); $("dBook").close(); } };
+  $("stuForm").onsubmit = async e => { e.preventDefault();
+    if (await save(sb.from("students").insert({student_no: $("sNo").value.trim(), name: $("sName").value.trim(), course: $("sCourse").value.trim().toUpperCase(), year: +$("sYear").value}), "Student added.", {"23505": "That student number is already registered."})) { e.target.reset(); $("dStu").close(); } };
+  $("loanForm").onsubmit = async e => { e.preventDefault();
+    const b = +$("lBook").value, s = +$("lStu").value; if (!b || !s) return toast("Choose a book and a student.");
+    if (D.loans.filter(l => l.student_id === s && !l.returned).length >= MAXLOANS) return toast("This student already has " + MAXLOANS + " borrowed books.");
+    if (await save(sb.from("loans").insert({book_id: b, student_id: s, issued: today(), due: addDays(today(), +$("lDays").value)}), "Book issued.")) $("dLoan").close(); };
+  ["bSearch","bFilter","sSearch"].forEach(id => $(id).oninput = render);
+  $("seg").onclick = e => { const b = e.target.closest("button"); if (!b) return; lf = b.dataset.lf;
+    document.querySelectorAll("#seg button").forEach(x => x.setAttribute("aria-pressed", x === b)); render(); };
+  document.body.addEventListener("click", e => {
+    const t = e.target.closest("button"); if (!t) return; const d = t.dataset;
+    if (d.open) $(d.open).showModal();
+    if ("close" in d) t.closest("dialog").close();
+    if (d.delbook) ask("This book will be removed from the catalog.", () => save(sb.from("books").delete().eq("id", d.delbook), "Book deleted.", {"23503": "Can't delete a book that has loan history."}));
+    if (d.delstu) ask("This student will be removed from the system.", () => save(sb.from("students").delete().eq("id", d.delstu), "Student deleted.", {"23503": "Can't delete a student that has loan history."}));
+    if (d.return) { const l = D.loans.find(x => x.id == d.return); save(sb.from("loans").update({returned: today(), fine: Math.max(0, diff(l.due, today())) * RATE}).eq("id", d.return), "Book returned."); }
+  });
+  $("dConfirm").onclose = () => { const fn = pending; pending = null; if ($("dConfirm").returnValue === "yes" && fn) fn(); };
+  $("exportDb").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(D, null, 2)], {type: "application/json"})); a.download = "campus_library.json"; a.click(); toast("Data exported."); };
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+}
+
+async function init() {
+  if (SUPABASE_URL.includes("PASTE") || SUPABASE_KEY.includes("PASTE")) {
+    $("app").innerHTML = `<div class="card"><h3>Connect your Supabase database</h3><p>Open this file, find the two lines at the top of the script, and paste your Project URL and anon public key from Supabase (Project Settings, then API). Then run setup.sql in the Supabase SQL Editor.</p></div>`; return;
+  }
+  try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) { $("app").innerHTML = `<div class="card"><h3>Invalid Supabase details</h3><p>${esc(e.message)}</p></div>`; return; }
+  $("app").innerHTML = ""; $("app").appendChild($("tpl").content.cloneNode(true));
+  wire(); await load(true);
+}
+init();
+</script>
+</body>
+</html>
