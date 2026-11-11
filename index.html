@@ -134,17 +134,6 @@ aside nav button[aria-selected=true]{background:rgba(255,255,255,.14);box-shadow
   <div class="wrap"><table><thead><tr><th>Book</th><th>Student</th><th>Issued</th><th>Due</th><th>Status</th><th>Fine</th><th></th></tr></thead><tbody id="loanRows"></tbody></table></div>
 </section>
 
-<section class="view" id="settings">
-  <div class="head"><div><h2>Settings</h2><p>Library rules and database tools.</p></div></div>
-  <div class="card">
-    <div class="set"><div><b>Borrowing limit</b><p>Each student can borrow up to 3 books at a time.</p></div></div>
-    <div class="set"><div><b>Late fee</b><p>₱5 per day after the due date, charged when the book is returned.</p></div></div>
-    <div class="set"><div><b>Export data</b><p>Download a copy of all records as a JSON file.</p></div><button class="btn ghost" id="exportDb">Export</button></div>
-    <div class="set"><div><b>Database</b><p>Records are stored online in Supabase and shared by everyone who opens this site.</p></div></div>
-  </div>
-  </div>
-</section>
-
 <dialog id="dBook"><form id="bookForm"><h3>Add book</h3><p>Add a new title to the catalog.</p>
   <label for="bTitle">Title</label><input id="bTitle" required>
   <label for="bAuthor">Author</label><input id="bAuthor" required>
@@ -185,9 +174,8 @@ const RATE = 5, MAXLOANS = 3;
 const ICONS = {dash:'<path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z"/>',
   books:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM20 17v4H6.5"/>',
   students:'<circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1M17 4a4 4 0 0 1 0 8M22 21v-1a5 5 0 0 0-4-4.9"/>',
-  loans:'<path d="M7 7h13l-3-3M17 17H4l3 3"/>',
-  settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'};
-const NAV = [["dash","Dashboard"],["books","Books"],["students","Students"],["loans","Loans"],["settings","Settings"]];
+  loans:'<path d="M7 7h13l-3-3M17 17H4l3 3"/>'};
+const NAV = [["dash","Dashboard"],["books","Books"],["students","Students"],["loans","Loans"]];
 const GR = [["#5b4cdb","#8b5cf6"],["#0f9d8a","#14b8a6"],["#d9468f","#f97316"],["#2f7bd9","#0ea5e9"],["#c2410c","#f43f5e"],["#15803d","#65a30d"],["#7c3aed","#ec4899"],["#0369a1","#6366f1"]];
 const gr = c => { let h = 0; for (const ch of c) h = (h * 31 + ch.charCodeAt(0)) % GR.length; return GR[h]; };
 let sb, D = {books: [], students: [], loans: []}, lf = "all", pending = null, tt;
@@ -294,7 +282,6 @@ function wire() {
     if (d.return) { const l = D.loans.find(x => x.id == d.return); save(sb.from("loans").update({returned: today(), fine: Math.max(0, diff(l.due, today())) * RATE}).eq("id", d.return), "Book returned."); }
   });
   $("dConfirm").onclose = () => { const fn = pending; pending = null; if ($("dConfirm").returnValue === "yes" && fn) fn(); };
-  $("exportDb").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(D, null, 2)], {type: "application/json"})); a.download = "campus_library.json"; a.click(); toast("Data exported."); };
   document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
 }
 
