@@ -1,5 +1,4 @@
--- Campus Library: run this once in Supabase (SQL Editor -> New query -> Run).
--- Warning: the first line erases old library tables so you can re-run safely.
+
 drop table if exists loans, students, books cascade;
 
 create table books(
@@ -29,7 +28,7 @@ create table loans(
   fine int not null default 0
 );
 
--- Open access for a class project. Add a login before using this for real.
+
 alter table books enable row level security;
 alter table students enable row level security;
 alter table loans enable row level security;
@@ -37,7 +36,7 @@ create policy "open" on books for all using (true) with check (true);
 create policy "open" on students for all using (true) with check (true);
 create policy "open" on loans for all using (true) with check (true);
 
--- Sample data
+
 insert into books(isbn,title,author,category,copies) values
 ('9780132350884','Clean Code','Robert C. Martin','Programming',2),
 ('9780078022159','Database System Concepts','Silberschatz','Databases',3),
